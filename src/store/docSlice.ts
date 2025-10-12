@@ -1,31 +1,28 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/toolkit";
-import type { Analysis, Highlight, QAResult, RiskHit } from "../types";
+import type { Analysis, Highlight, QAResult } from "../types";
 import { splitIntoChunks } from "../lib/chunk";
+import { summarizeAllAI } from "../features/analyze";
+import { answerQuestionAI } from "../features/ask";
 
+export const analyzeDocument = createAsyncThunk<Analysis, { rawText: string }>(
+    "doc/analyzeDocument",
+    async ({ rawText }) => {
+        const chunks = splitIntoChunks(rawText);
+        const { bullets } = await summarizeAllAI(chunks);
+        const risks = [] as Analysis["risks"];
 
-export const analyzeDocument = createAsyncThunk<Analysis, { rawText: string }>("doc/analyzeDocument", async ({ rawText }) => {
-    const chunks = splitIntoChunks(rawText);
-    const first = chunks[0]?.text ?? "";
-    const sentences = first.split(/(?<=[.!?])\s+/)
-        .map(s => s.trim())
-        .filter(Boolean)
-        .slice(0, 3);
+        return { chunks, bullets, risks };
+    }
+);
 
-    const bullets = sentences.length ? sentences : ["Summary will appear here once analysis runs."];
-
-    const risks: RiskHit[] = [];
-
-    return { chunks, bullets, risks }
-
-});
-
-export const askQuestion = createAsyncThunk<QAResult, { question: string, fullText: string }>("doc/askQuestion", async ({ question }) => {
-    return {
-        answer:
-            `Prototype answer for: “${question}”. ` +
-            `Retrieval & citations coming in the next step.`,
-        citations: [],
-    };
+export const askQuestion = createAsyncThunk<
+    QAResult,
+    { question: string; fullText: string },
+    { state: { doc: { analysis: Analysis | null } } }
+>("doc/askQuestion", async ({ question }, thunkApi) => {
+    const analysis = thunkApi.getState().doc.analysis;
+    const chunks = analysis?.chunks ?? [];
+    return answerQuestionAI(question, chunks);
 });
 
 type Status = "idle" | "loading" | "succeeded" | "failed";
@@ -33,7 +30,7 @@ type Status = "idle" | "loading" | "succeeded" | "failed";
 type DocState = {
     rawText: string;
     analysis: Analysis | null;
-    highlight: Highlight;
+    highlight: Highlight | null;
     qa: {
         lastQuestion: string | null;
         lastAnswer: QAResult | null;
@@ -69,47 +66,38 @@ const docSlice = createSlice({
             state.highlight = action.payload;
         },
         clearDocument(state) {
-            state.rawText = "";
-            state.analysis = null;
-            state.highlight = null;
-            state.qa = {
-                lastQuestion: null,
-                lastAnswer: null,
-                status: "idle",
-                error: null,
-            };
-            state.analyzeStatus = "idle";
-            state.analyzeError = null;
+            Object.assign(state, initialState);
         },
     },
-    extraReducers: builder => {
+    extraReducers: (builder) => {
         builder
-            .addCase(analyzeDocument.pending, state => {
-                state.analyzeStatus = "loading";
-                state.analyzeError = null;
+            .addCase(analyzeDocument.pending, (s) => {
+                s.analyzeStatus = "loading";
+                s.analyzeError = null;
             })
-            .addCase(analyzeDocument.fulfilled, (state, action) => {
-                state.analyzeStatus = "succeeded";
-                state.analysis = action.payload;
+            .addCase(analyzeDocument.fulfilled, (s, a) => {
+                s.analyzeStatus = "succeeded";
+                s.analysis = a.payload;
             })
-            .addCase(analyzeDocument.rejected, (state, action) => {
-                state.analyzeStatus = "failed";
-                state.analyzeError = action.error.message || "Analysis failed.";
+            .addCase(analyzeDocument.rejected, (s, a) => {
+                s.analyzeStatus = "failed";
+                s.analyzeError = a.error.message || "Analysis failed.";
             })
-            .addCase(askQuestion.pending, state => {
-                state.qa.status = "loading";
-                state.qa.error = null;
+            .addCase(askQuestion.pending, (s, a) => {
+                s.qa.status = "loading";
+                s.qa.error = null;
+                s.qa.lastQuestion = a.meta.arg.question;
             })
-            .addCase(askQuestion.fulfilled, (state, action) => {
-                state.qa.status = "succeeded";
-                state.qa.lastAnswer = action.payload;
+            .addCase(askQuestion.fulfilled, (s, a) => {
+                s.qa.status = "succeeded";
+                s.qa.lastAnswer = a.payload;
             })
-            .addCase(askQuestion.rejected, (state, action) => {
-                state.qa.status = "failed";
-                state.qa.error = action.error.message || "Q&A failed.";
-            })
-    }
-})
+            .addCase(askQuestion.rejected, (s, a) => {
+                s.qa.status = "failed";
+                s.qa.error = a.error.message || "Q&A failed.";
+            });
+    },
+});
 
 export const { setRawText, setHighlight, clearDocument } = docSlice.actions;
 export default docSlice.reducer;
