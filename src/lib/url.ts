@@ -26,7 +26,6 @@ export async function fetchUrlAsText(url: string): Promise<string> {
         return text;
     }
 
-    // Non-HTML (e.g., text/markdown) → return as-is
     return body;
 
 }

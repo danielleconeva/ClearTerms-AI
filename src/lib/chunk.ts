@@ -1,6 +1,5 @@
 import { CHUNK_SIZE, OVERLAP } from "./constants";
-import type { Chunk } from '../types';
-
+import type { Chunk } from "../types";
 
 export function splitIntoChunks(text: string): Chunk[] {
     const chunks: Chunk[] = [];
@@ -15,11 +14,11 @@ export function splitIntoChunks(text: string): Chunk[] {
             id: `c_${id++}`,
             text: slice,
             start: cursor,
-            end
-        })
+            end,
+        });
 
         if (end === text.length) break;
-        cursor = end - OVERLAP;
+        cursor = Math.max(0, end - OVERLAP);
     }
     return chunks;
 }
