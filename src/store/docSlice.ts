@@ -1,14 +1,19 @@
+// src/store/docSlice.ts
 import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/toolkit";
 import type { Analysis, Highlight, QAResult } from "../types";
 import { splitIntoChunks } from "../lib/chunk";
 import { summarizeAllAI } from "../features/analyze";
 import { answerQuestionAI } from "../features/ask";
+import type { BulletRisk } from "../types";
+import { detectBulletRisks } from "../lib/risks";
 
 export const analyzeDocument = createAsyncThunk<Analysis, { rawText: string }>(
     "doc/analyzeDocument",
     async ({ rawText }) => {
         const chunks = splitIntoChunks(rawText);
+
         const { bullets } = await summarizeAllAI(chunks);
+
         const risks = [] as Analysis["risks"];
 
         return { chunks, bullets, risks };
@@ -30,6 +35,7 @@ type Status = "idle" | "loading" | "succeeded" | "failed";
 type DocState = {
     rawText: string;
     analysis: Analysis | null;
+    bulletRisks: BulletRisk[];
     highlight: Highlight | null;
     qa: {
         lastQuestion: string | null;
@@ -44,6 +50,7 @@ type DocState = {
 const initialState: DocState = {
     rawText: "",
     analysis: null,
+    bulletRisks: [],
     highlight: null,
     qa: {
         lastQuestion: null,
@@ -78,6 +85,8 @@ const docSlice = createSlice({
             .addCase(analyzeDocument.fulfilled, (s, a) => {
                 s.analyzeStatus = "succeeded";
                 s.analysis = a.payload;
+
+                s.bulletRisks = detectBulletRisks(a.payload.bullets);
             })
             .addCase(analyzeDocument.rejected, (s, a) => {
                 s.analyzeStatus = "failed";

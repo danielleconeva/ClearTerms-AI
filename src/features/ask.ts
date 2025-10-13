@@ -38,6 +38,10 @@ export async function pickBestChunksAI(
     return scored.sort((a, b) => b.score - a.score).slice(0, topK).map(s => s.chunk);
 }
 
+/**
+ * Returns a simple answer string from Gemini. No citations are used in UI.
+ * We still return an empty citations array to satisfy existing QAResult shape.
+ */
 export async function answerQuestionAI(
     question: string,
     chunks: Chunk[]
@@ -48,8 +52,6 @@ export async function answerQuestionAI(
 
     return {
         answer: qaOutput.answer || "Not found in the provided text.",
-        citations: contextChunks.map((c) => ({
-            chunkId: c.id, start: c.start, end: c.end,
-        })),
+        citations: [], // intentionally empty; UI doesn't render citations
     };
 }

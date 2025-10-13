@@ -90,8 +90,9 @@ export async function answerInContextAI(args: {
     question: string;
     context: string;
 }): Promise<{ answer: string }> {
-    const q = preclean(args.question);
-    const ctx = preclean(args.context);
+    // DO NOT preclean the question — it strips normal user questions.
+    const q = String(args.question || "").trim();
+    const ctx = preclean(args.context); // keep aggressive clean for context
 
     const res = await fetch("/api/gemini/ask", {
         method: "POST",
@@ -102,6 +103,7 @@ export async function answerInContextAI(args: {
     const data = await res.json();
     return { answer: data.answer || "Not found in the provided text." };
 }
+
 
 
 function hashEmbed(text: string, dim = 256): number[] {

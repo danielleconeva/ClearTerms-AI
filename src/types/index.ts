@@ -1,23 +1,35 @@
+
+export type Severity = "low" | "med" | "high";
+
 export type Chunk = {
     id: string;
     text: string;
-    start: number; // char index in full doc
-    end: number;   // char index in full doc
+    start: number;
+    end: number;
 };
 
 export type RiskHit = {
     id: string;
     chunkId: string;
-    label: string;             // e.g., "Auto-renewal"
-    severity: "low" | "med" | "high";
-    start: number;             // char index in full doc
+    label: string;
+    severity: Severity;
+    start: number;
     end: number;
     note?: string;
 };
 
+export type BulletRisk = {
+    id: string;
+    bulletIndex: number;
+    labels: string[];
+    severities: Severity[];
+    topSeverity: Severity;
+    notes: string[];
+};
+
 export type Analysis = {
     chunks: Chunk[];
-    bullets: string[];         // TL;DR lines
+    bullets: string[];
     risks: RiskHit[];
 };
 

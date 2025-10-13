@@ -1,6 +1,6 @@
+// src/store/store.ts
 import { configureStore } from "@reduxjs/toolkit";
 import docReducer, { clearDocument } from "./docSlice";
-
 
 type DocPersist = {
     rawText: string;
@@ -34,9 +34,9 @@ function clearDocState() {
     try {
         if (typeof localStorage === "undefined") return;
         localStorage.removeItem(STORAGE_KEY);
-    } catch { }
+    } catch {
+    }
 }
-
 
 const persisted = loadDocState();
 
@@ -45,6 +45,7 @@ const preloadedState = persisted
         doc: {
             rawText: persisted.rawText ?? "",
             analysis: persisted.analysis ?? null,
+            bulletRisks: [],
             highlight: null,
             qa: {
                 lastQuestion: null,
@@ -62,14 +63,12 @@ const preloadedState = persisted
     }
     : undefined;
 
-
 export const store = configureStore({
     reducer: {
         doc: docReducer,
     },
     preloadedState,
 });
-
 
 let prevSnapshot = "";
 store.subscribe(() => {
@@ -85,7 +84,6 @@ store.subscribe(() => {
     }
 });
 
-
 const originalDispatch = store.dispatch;
 store.dispatch = (action: any) => {
     const result = originalDispatch(action);
@@ -94,7 +92,6 @@ store.dispatch = (action: any) => {
     }
     return result;
 };
-
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
