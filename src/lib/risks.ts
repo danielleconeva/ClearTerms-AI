@@ -1,4 +1,3 @@
-// src/lib/risks.ts
 import type { BulletRisk, Chunk, RiskHit, Severity } from "../types";
 
 type RiskRule = {
@@ -8,12 +7,8 @@ type RiskRule = {
     pattern: RegExp;
 };
 
-/**
- * Central rule list for both full-text and per-bullet checks.
- * Keep patterns simple and broad — this is a heuristic badge, not legal analysis.
- */
+
 const RISK_RULES: RiskRule[] = [
-    // Payments / subscriptions
     {
         label: "Auto-renewal",
         severity: "med",
@@ -45,7 +40,6 @@ const RISK_RULES: RiskRule[] = [
         pattern: /\b(cancellation fee|early termination)\b/i,
     },
 
-    // Legal remedies / limits
     {
         label: "Arbitration clause",
         severity: "high",
@@ -83,7 +77,6 @@ const RISK_RULES: RiskRule[] = [
         pattern: /\b(as is|no warranties|without warranty)\b/i,
     },
 
-    // Account / service control
     {
         label: "Termination / suspension",
         severity: "med",
@@ -103,7 +96,6 @@ const RISK_RULES: RiskRule[] = [
         pattern: /\b(monitor|moderate|remove)\b/i,
     },
 
-    // Privacy / data
     {
         label: "Data collection/processing",
         severity: "med",
@@ -147,7 +139,6 @@ const RISK_RULES: RiskRule[] = [
         pattern: /\b(biometric|fingerprint|face|iris|voiceprint)\b/i,
     },
 
-    // IP / content
     {
         label: "Broad license",
         severity: "high",
@@ -173,7 +164,6 @@ const RISK_RULES: RiskRule[] = [
         pattern: /\b(trademark|trade mark|trade[\- ]name|prior|consent|written)\b/i,
     },
 
-    // Governance / compliance
     {
         label: "Governing law / jurisdiction",
         severity: "low",
@@ -193,7 +183,6 @@ const RISK_RULES: RiskRule[] = [
         pattern: /\b(force majeure|act of god)\b/i,
     },
 
-    // Platform / API
     {
         label: "API limits / quotas",
         severity: "low",
@@ -203,7 +192,6 @@ const RISK_RULES: RiskRule[] = [
 ];
 
 
-/* ------------------------- Existing full-text scanner ------------------------ */
 
 function findChunkIdByAbsoluteIndex(chunks: Chunk[], absoluteIndex: number): string | null {
     let lo = 0, hi = chunks.length - 1;
@@ -217,10 +205,7 @@ function findChunkIdByAbsoluteIndex(chunks: Chunk[], absoluteIndex: number): str
     return null;
 }
 
-/**
- * Keeps your original full-text risk detection (unchanged),
- * in case you use ranges to highlight in the document viewer.
- */
+
 export function detectRisks(fullText: string, chunks: Chunk[]): RiskHit[] {
     const riskHits: RiskHit[] = [];
     let rid = 0;
@@ -244,18 +229,12 @@ export function detectRisks(fullText: string, chunks: Chunk[]): RiskHit[] {
                 note: rule.note,
             });
 
-            // Avoid infinite loops on zero-length matches
             if (rule.pattern.lastIndex === m.index) rule.pattern.lastIndex++;
         }
     }
     return riskHits;
 }
 
-/* ---------------------- NEW: Per-bullet lightweight flags -------------------- */
-
-/**
- * Determine the "highest" severity present in a list.
- */
 function topSeverity(sevs: Severity[]): Severity {
     let level = 0;
     for (const s of sevs) {
@@ -266,10 +245,7 @@ function topSeverity(sevs: Severity[]): Severity {
     return (["low", "med", "high"] as Severity[])[Math.max(0, level - 1)] ?? "low";
 }
 
-/**
- * Very simple keyword-based risk tagging for ALREADY GENERATED bullets.
- * No chunk math, no start/end indices — just badges for the UI.
- */
+
 export function detectBulletRisks(bullets: string[]): BulletRisk[] {
     const out: BulletRisk[] = [];
     let idCounter = 0;
@@ -303,9 +279,7 @@ export function detectBulletRisks(bullets: string[]): BulletRisk[] {
     return out;
 }
 
-/**
- * Small helper for the UI: returns the top severity for a given bullet index, or null.
- */
+
 export function getBulletTopSeverity(bulletIndex: number, bulletRisks: BulletRisk[]): Severity | null {
     const hit = bulletRisks.find(r => r.bulletIndex === bulletIndex);
     return hit ? hit.topSeverity : null;

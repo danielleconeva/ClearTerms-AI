@@ -1,4 +1,3 @@
-// src/store/docSlice.ts
 import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/toolkit";
 import type { Analysis, Highlight, QAResult } from "../types";
 import { splitIntoChunks } from "../lib/chunk";

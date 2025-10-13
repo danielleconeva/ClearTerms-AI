@@ -16,32 +16,32 @@ export default function AskForm({
     disabled = false,
 }: AskFormProps) {
     const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-        if (disabled) return; // prevent submit via Enter while disabled
+        if (disabled) return;
         if (e.key === "Enter") onSubmit();
     };
 
     const btnBase =
-        "grid place-items-center rounded-lg px-4 min-w-12 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(190_100%_50%/0.4)] shadow-[0_4px_12px_-6px_rgba(0,0,0,0.35)]";
+        "grid place-items-center rounded-lg px-3 sm:px-4 2xl:px-5 min-w-10 sm:min-w-12 2xl:min-w-14 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(190_100%_50%/0.4)] shadow-[0_4px_12px_-6px_rgba(0,0,0,0.35)]";
     const btnEnabled =
         "bg-[hsl(190_100%_50%)] text-[hsl(230_60%_8%)] hover:bg-[hsl(190_100%_60%)] hover:scale-[1.03] cursor-pointer";
     const btnDisabled =
         "bg-[hsl(190_30%_35%/0.7)] text-[hsl(230_20%_85%/0.8)] opacity-60 cursor-not-allowed pointer-events-none";
 
     return (
-        <div className="flex gap-3">
+        <div className="flex gap-2 sm:gap-3 2xl:gap-4">
             <input
                 value={value}
                 onChange={(e) => onChange((e.target as HTMLInputElement).value)}
                 onKeyDown={handleKeyDown}
                 placeholder={placeholder}
-                className="flex-1 rounded-lg px-4 py-3 
-                    bg-[hsl(230_40%_22%/0.55)] 
+                className="flex-1 rounded-lg px-3 sm:px-4 2xl:px-5 py-2.5 sm:py-3 2xl:py-4
+                    bg-[hsl(230_40%_22%/0.55)]
                     border border-[hsl(190_100%_50%/0.35)]
-                    text-white 
-                    placeholder:text-[hsl(0_0%_78%)] 
+                    text-sm sm:text-base 2xl:text-lg text-white
+                    placeholder:text-[hsl(0_0%_78%)]
                     focus:outline-none
-                    focus:border-[hsl(190_100%_50%/0.65)] 
-                    focus:ring-2 
+                    focus:border-[hsl(190_100%_50%/0.65)]
+                    focus:ring-2
                     focus:ring-[hsl(190_100%_50%/0.4)]
                     transition"
             />
@@ -57,10 +57,9 @@ export default function AskForm({
                 title={disabled ? "Answering..." : "Send"}
             >
                 {disabled ? (
-                    // spinner
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5 animate-spin"
+                        className="h-4 w-4 sm:h-5 sm:w-5 2xl:h-6 2xl:w-6 animate-spin"
                         viewBox="0 0 24 24"
                         fill="none"
                         stroke="currentColor"
@@ -70,10 +69,9 @@ export default function AskForm({
                         <path d="M21 12a9 9 0 0 1-9 9" />
                     </svg>
                 ) : (
-                    // arrow icon
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5"
+                        className="h-4 w-4 sm:h-5 sm:w-5 2xl:h-6 2xl:w-6"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"

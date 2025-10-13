@@ -22,9 +22,7 @@ export default function UploadPage() {
                     ? { type: "url", url: result.url }
                     : { type: "paste", text: result.text }
             );
-            if (!rawText.trim()) {
-                throw new Error("No text content found.");
-            }
+            if (!rawText.trim()) throw new Error("No text content found.");
             dispatch(setRawText(rawText));
             await dispatch(analyzeDocument({ rawText })).unwrap();
             navigate("/summary");
@@ -37,24 +35,35 @@ export default function UploadPage() {
 
     return (
         <div
-            className="flex-1 container mx-auto px-6 pt-14 pb-20 flex items-center justify-center"
-            style={{ minHeight: "100vh" }}
+            className="
+                flex-1 container mx-auto
+                px-4 sm:px-6 xl:px-6 2xl:px-8
+                pt-8 sm:pt-10 xl:pt-14 2xl:pt-16
+                pb-10 sm:pb-16 xl:pb-20 2xl:pb-24
+                flex items-start md:items-center justify-start md:justify-center
+                min-h-0 md:min-h-screen
+            "
         >
-            <div className="w-full max-w-2xl">
-                <div className="text-center mb-12">
-                    <h1 className="text-4xl lg:text-5xl font-bold mb-4 tracking-tight">
-                        <span className="text-center text-4xl font-extrabold tracking-tight text-white md:text-5xl">
-                            Upload Your Document
-                        </span>
+            <div className="w-full max-w-xl sm:max-w-2xl xl:max-w-2xl 2xl:max-w-3xl">
+                <div className="text-center mb-8 sm:mb-10 xl:mb-12 2xl:mb-14">
+                    <h1 className="text-4xl md:text-5xl xl:text-5xl 2xl:text-6xl font-extrabold tracking-tight text-white animate-fadeUpText">
+                        Upload Your Document
                     </h1>
-                    <div className="mb-12 mt-4 h-[3px] w-70 mx-auto rounded-full bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 shadow-[0_0_20px_rgba(56,189,248,0.6)] " />
-                    <p className="mx-auto mt-4 mb-8 max-w-2xl text-center text-lg text-slate-300 ">
-                        Choose how you'd like to provide your Terms & Conditions
+                    <div className="mb-8 sm:mb-10 xl:mb-12 2xl:mb-14 mt-3 sm:mt-4 2xl:mt-5 h-[3px] w-56 sm:w-64 xl:w-72 2xl:w-80 mx-auto rounded-full bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 shadow-[0_0_20px_rgba(56,189,248,0.6)] animate-fadeUpText" />
+                    <p
+                        className="mx-auto mt-3 sm:mt-4 2xl:mt-5 mb-6 sm:mb-8 2xl:mb-10 max-w-xl sm:max-w-2xl 2xl:max-w-3xl text-center text-lg sm:text-lg xl:text-lg 2xl:text-xl text-slate-300 animate-fadeUpText"
+                        style={{ animationDelay: "0.2s" }}
+                    >
+                        Choose how you'd like to provide your Terms &amp;
+                        Conditions
                     </p>
                 </div>
-                <div className="relative">
+                <div
+                    className="relative animate-fadeUpText"
+                    style={{ animationDelay: "0.4s" }}
+                >
                     <div
-                        className="absolute -inset-4 opacity-20 blur-3xl rounded-full"
+                        className="absolute -inset-3 sm:-inset-4 2xl:-inset-5 opacity-20 blur-3xl rounded-full"
                         style={{
                             background:
                                 "linear-gradient(to right, hsl(190 100% 50%), hsl(320 80% 60%))",
@@ -63,7 +72,7 @@ export default function UploadPage() {
                     <UploadForm onSubmit={handleSubmit} />
                     {busy && (
                         <p
-                            className="mt-3 text-sm text-center"
+                            className="mt-2 sm:mt-3 2xl:mt-4 text-sm xl:text-sm 2xl:text-base text-center"
                             style={{ color: "hsl(0 0% 70%)" }}
                         >
                             Analyzing…
@@ -71,7 +80,7 @@ export default function UploadPage() {
                     )}
                     {error && (
                         <p
-                            className="mt-3 text-sm text-center"
+                            className="mt-2 sm:mt-3 2xl:mt-4 text-sm xl:text-sm 2xl:text-base text-center"
                             style={{ color: "hsl(0 84.2% 60.2%)" }}
                             role="alert"
                         >
