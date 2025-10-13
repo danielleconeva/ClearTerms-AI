@@ -13,6 +13,11 @@ import { assembleFullText } from "../lib/assemble";
 import type { Severity } from "../types";
 import { detectBulletRisks } from "../lib/risks";
 
+function ensureLeadingUppercase(s: string): string {
+    const m = s.match(/^(\s*["'“‘(\[]*)([a-z])/);
+    return m ? m[1] + m[2].toUpperCase() + s.slice(m[0].length) : s;
+}
+
 export default function SummaryPage() {
     const navigate = useNavigate();
     const analysis = useAppSelector((state) => state.doc.analysis);
@@ -176,7 +181,7 @@ export default function SummaryPage() {
                                         )}
 
                                         <p className="flex-1 text-sm sm:text-[0.95rem] 2xl:text-lg leading-relaxed font-medium text-white">
-                                            {bullet}
+                                            {ensureLeadingUppercase(bullet)}
                                         </p>
                                     </div>
 

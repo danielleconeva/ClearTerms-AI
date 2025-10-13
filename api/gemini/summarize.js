@@ -1,23 +1,7 @@
-import "dotenv/config";
-import express from "express";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-
-const PORT = process.env.PORT ? Number(process.env.PORT) : 8787;
-const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY || "";
-
-if (!GOOGLE_API_KEY) {
-    console.error("Missing GOOGLE_API_KEY in environment.");
-    process.exit(1);
-}
-
-const app = express();
-app.use(express.json({ limit: "10mb" }));
-const genAI = new GoogleGenerativeAI(GOOGLE_API_KEY);
-const SUMMARIZE_MODEL = "gemini-2.5-flash";
-const QA_MODEL = "gemini-2.5-flash";
+export const config = { maxDuration: 30 };
 
 function fallbackFromText(text, want = 5) {
-
     const sentences = String(text).replace(/\s+/g, " ").match(/[^.!?]+[.!?]/g) || [];
     return sentences
         .map((s) => s.trim())
@@ -30,19 +14,13 @@ function stitchContinuations(lines) {
     const out = [];
     for (let raw of lines) {
         let l = raw.trim();
-
         l = l.replace(/^\(?[A-G]\)\s*/i, "");
-
-
         l = l.replace(/\(defined in Section[^)]+\)/gi, "");
         l = l.replace(/\s*\(?(https?:\/\/[^\s)]+)\)?/gi, "");
-
         const prev = out[out.length - 1];
         const prevEnds = prev ? /[.?!]"?$/.test(prev) : true;
-
         const looksContinuation =
             /^([a-z].{0,120}|and\b|or\b|but\b|including\b|such as\b|subject to\b|provided that\b)/i.test(l);
-
         if (prev && !prevEnds && looksContinuation) {
             out[out.length - 1] = (prev + " " + l).replace(/\s{2,}/g, " ").trim();
         } else {
@@ -57,19 +35,14 @@ function preForModel(text) {
         .replace(/\r/g, "")
         .split("\n")
         .map((line) => {
-
             let s = line.replace(
                 /^[\s\u00A0]*(?:\d+(?:\.\d+)*\s*\([A-Za-z]\)|\d+(?:\.\d+)*|\([A-Za-z]\)|\d+\))\s*[.)-]?\s+/,
                 ""
             );
-
             const letters = s.replace(/[^A-Za-z]+/g, "");
             const caps = (letters.match(/[A-Z]/g) || []).length;
-            const isAllCapsShort =
-                letters && caps / letters.length > 0.9 && s.split(/\s+/).length <= 8;
+            const isAllCapsShort = letters && caps / letters.length > 0.9 && s.split(/\s+/).length <= 8;
             if (isAllCapsShort) return "";
-
-
             if (/^\s*(?:\d+|[A-Za-z])\.?\s*$/.test(s)) return "";
             return s.trim();
         })
@@ -90,9 +63,7 @@ function cleanBullets(raw, want = 7) {
         )
         .map((l) => l.replace(/^[\s\t\u00A0]*(?:\(?\d+(?:\.\d+)*\)?[.)]?)[\s-]+/i, ""))
         .map((l) => l.replace(/^[\s\t\u00A0]*\d+(?:\.\d+)*\s*\([A-Za-z]\)[,.)\s-]*/, ""))
-        .map((l) =>
-            l.replace(/\bunder\s+this\s+clause\s*\d+(?:\.\d+)*\s*\([A-Za-z]\)\s*[,.)-]*/i, "")
-        )
+        .map((l) => l.replace(/\bunder\s+this\s+clause\s*\d+(?:\.\d+)*\s*\([A-Za-z]\)\s*[,.)-]*/i, ""))
         .map((l) => l.replace(/^(?:section|clause)\s*\d+(?:\.\d+)*\s*\([A-Za-z]\)\s*[:,\s-]*/i, ""))
         .map((l) => l.replace(/\s*\(\s*(?:see|section)\s*[\d.]+\s*\)/gi, ""))
         .map((l) => l.replace(/\s{2,}/g, " ").trim());
@@ -128,7 +99,6 @@ function cleanBullets(raw, want = 7) {
         .map((l) => l.replace(/\.{2,}$/g, "."))
         .filter((l) => l.length >= 20 && l.length <= 400);
 
-
     const seen = new Set();
     lines = lines.filter((l) => {
         const k = l.toLowerCase();
@@ -140,14 +110,21 @@ function cleanBullets(raw, want = 7) {
     return lines.slice(0, want);
 }
 
-app.post("/api/gemini/summarize", async (req, res) => {
+
+export default async function handler(req, res) {
+    if (req.method !== "POST") return res.status(405).end();
+
+    const key = process.env.GOOGLE_API_KEY || "";
+    if (!key) return res.status(500).json({ bullets: [], error: "missing_key" });
+
     try {
         const raw = String(req.body?.text || "").trim();
         if (!raw) return res.status(400).json({ bullets: [] });
 
         const input = preForModel(raw);
 
-        const model = genAI.getGenerativeModel({ model: SUMMARIZE_MODEL });
+        const genAI = new GoogleGenerativeAI(key);
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
         const prompt = [
             "You are a legal summarizer.",
@@ -196,8 +173,8 @@ app.post("/api/gemini/summarize", async (req, res) => {
             "Now summarize this text:",
             "'''",
             input,
-            "'''"
-        ].join("\\n");
+            "'''",
+        ].join("\n");
 
         const result = await model.generateContent({
             contents: [{ role: "user", parts: [{ text: prompt }] }],
@@ -214,9 +191,7 @@ app.post("/api/gemini/summarize", async (req, res) => {
         try {
             const parsed = JSON.parse(out);
             if (parsed && Array.isArray(parsed.bullets)) bullets = parsed.bullets;
-        } catch {
-
-        }
+        } catch { }
 
         if (!bullets.length) {
             bullets = cleanBullets(out.split(/\n+/), 6);
@@ -235,34 +210,4 @@ app.post("/api/gemini/summarize", async (req, res) => {
         console.error(e);
         return res.status(500).json({ bullets: [], error: "summarize_failed" });
     }
-});
-
-app.post("/api/gemini/ask", async (req, res) => {
-    try {
-        const q = String((req.body && req.body.question) || "").trim();
-        const ctx = String((req.body && req.body.context) || "").trim();
-        if (!q || !ctx) return res.json({ answer: "Not found in the provided text." });
-
-        const model = genAI.getGenerativeModel({ model: QA_MODEL });
-        const sys =
-            "Answer ONLY from the provided context. If the answer is not present, reply exactly: 'Not found in the provided text.' Be concise (1–3 short sentences).";
-        const prompt = `${sys}\n\nQuestion: ${q}\n\nContext:\n"""${ctx}"""`;
-
-        const result = await model.generateContent({
-            contents: [{ role: "user", parts: [{ text: prompt }] }],
-            generationConfig: { temperature: 0, maxOutputTokens: 220 },
-        });
-
-        const answer = result.response.text().trim() || "Not found in the provided text.";
-        res.json({ answer });
-    } catch (e) {
-        console.error(e);
-        res.status(500).json({ answer: "Not found in the provided text.", error: "qa_failed" });
-    }
-});
-
-app.get("/api/health", (_req, res) => res.json({ ok: true }));
-
-app.listen(PORT, () => {
-    console.log(`Gemini proxy listening on http://localhost:${PORT}`);
-});
+}

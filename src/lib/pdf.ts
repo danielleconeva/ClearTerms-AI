@@ -1,9 +1,12 @@
-import * as pdfjsLib from "pdfjs-dist";
-import "pdfjs-dist/build/pdf.worker.mjs";
+// src/lib/pdf.ts
+import { getDocument, GlobalWorkerOptions } from "pdfjs-dist";
+import pdfWorker from "pdfjs-dist/build/pdf.worker.mjs?worker&url";
+
+GlobalWorkerOptions.workerSrc = pdfWorker;
 
 export async function pdfToText(file: File | ArrayBuffer): Promise<string> {
     const data = file instanceof File ? await file.arrayBuffer() : file;
-    const loadingTask = pdfjsLib.getDocument({ data });
+    const loadingTask = getDocument({ data });
     const pdf = await loadingTask.promise;
     const pages: string[] = [];
 
@@ -21,7 +24,7 @@ export async function pdfToText(file: File | ArrayBuffer): Promise<string> {
             if (prevX !== null && x !== null && x - prevX > 2.5) line += " ";
             line += s;
             prevX = x;
-            if (it.hasEOL) {
+            if ((it as any).hasEOL) {
                 pages.push(line);
                 line = "";
                 prevX = null;
