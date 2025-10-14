@@ -4,6 +4,11 @@ A focused, production-ready way to turn dense Terms & Conditions into **clear, a
 
 ---
 
+[![Vercel](https://img.shields.io/badge/Deploy-Vercel-black?logo=vercel)](https://vercel.com/)
+
+**Live:** [https://clearterms-ai.vercel.app](https://clearterms-ai.vercel.app)  
+_Deployed on Vercel with on-demand serverless AI._
+
 ## What it delivers
 
 -   **Instant, plain-English summary**  
@@ -123,6 +128,16 @@ A focused, production-ready way to turn dense Terms & Conditions into **clear, a
 
 ---
 
+## Deployment
+
+Hosted on **Vercel**, with AI calls executed via **serverless functions** at `/api/...`.
+
+-   The AI key is stored as a deployment environment variable and isn’t exposed in the browser.
+-   Deployments can be triggered from the Vercel CLI or dashboard; a primary domain serves the current production build.
+-   Client-side routing supports direct reloads on routes like `/ask` and `/summary`.
+
+---
+
 ## Local development (quick)
 
 ```bash
@@ -133,6 +148,8 @@ vercel link
 vercel env add GOOGLE_API_KEY development
 npm run vercel:dev
 # open http://localhost:3000 and http://localhost:3000/api/health
+```
+
 ```
 
 > In production, a SPA catch-all rewrite enables deep links like `/ask` or `/summary` on reload. In local dev, a dev-specific config omits that rewrite so Vite’s assets load correctly.
@@ -151,3 +168,4 @@ npm run vercel:dev
 ## Note
 
 ClearTerms-AI is designed to help you understand documents; it isn’t a substitute for legal advice.
+```
