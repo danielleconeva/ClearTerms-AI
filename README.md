@@ -7,6 +7,8 @@ A focused, production-ready way to turn dense Terms & Conditions into **clear, a
 **Live:** [https://clearterms-ai.vercel.app](https://clearterms-ai.vercel.app)  
 _Deployed on Vercel with on-demand serverless AI._
 
+---
+
 ## What it delivers
 
 -   **Instant, plain-English summary**  
@@ -165,7 +167,3 @@ npm run vercel:dev
 ## Note
 
 ClearTerms-AI is designed to help you understand documents; it isn’t a substitute for legal advice.
-
-```
-
-```
