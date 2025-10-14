@@ -7,7 +7,7 @@
         "dev": "vite",
         "build": "vite build",
         "preview": "vite preview",
-        "vercel:dev": "vercel dev"
+        "vercel:dev": "vercel dev --local-config vercel.dev.json"
     },
     "dependencies": {
         "@google/generative-ai": "^0.24.1",
