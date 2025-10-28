@@ -1,4 +1,3 @@
-// src/lib/assemble.ts
 import type { Chunk } from "../types";
 
 export function assembleFullText(chunks: Chunk[]): string {

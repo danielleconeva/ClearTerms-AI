@@ -42,7 +42,7 @@ export async function summarizeAllAI(
 ): Promise<{ bullets: string[] }> {
     if (!chunks?.length) return { bullets: [] };
 
-    const maxBulletsTotal = computeBulletCap(chunks); // keeps overall cap (6–24)
+    const maxBulletsTotal = computeBulletCap(chunks);
     const bullets: string[] = [];
     const seen = new Set<string>();
 
@@ -51,8 +51,7 @@ export async function summarizeAllAI(
 
         const local = await summarizeChunkAI(chunk.text);
 
-        // ✅ If we have only 1 chunk, keep up to 5 bullets from it.
-        //    If 2–3 chunks, allow up to 3 per chunk. Otherwise 1 per chunk.
+
         const take =
             chunks.length === 1 ? 5 :
                 chunks.length <= 3 ? Math.min(3, Math.ceil(maxBulletsTotal / chunks.length)) :

@@ -90,9 +90,8 @@ export async function answerInContextAI(args: {
     question: string;
     context: string;
 }): Promise<{ answer: string }> {
-    // DO NOT preclean the question — it strips normal user questions.
     const q = String(args.question || "").trim();
-    const ctx = preclean(args.context); // keep aggressive clean for context
+    const ctx = preclean(args.context);
 
     const res = await fetch("/api/gemini/ask", {
         method: "POST",

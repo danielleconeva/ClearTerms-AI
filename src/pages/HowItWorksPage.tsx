@@ -51,7 +51,6 @@ const Icon = {
     ),
 };
 
-// xl should match your ORIGINAL (no xl bumps). Only 2xl scales up.
 const card =
     "rounded-2xl border border-cyan-400/70 px-6 py-6 transition duration-300 " +
     "hover:-translate-y-1 hover:border-cyan-300 hover:shadow-[0_0_18px_rgba(56,189,248,.35)] active:translate-y-0 " +

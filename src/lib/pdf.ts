@@ -1,4 +1,3 @@
-// src/lib/pdf.ts
 import { getDocument, GlobalWorkerOptions } from "pdfjs-dist";
 import pdfWorker from "pdfjs-dist/build/pdf.worker.mjs?worker&url";
 
